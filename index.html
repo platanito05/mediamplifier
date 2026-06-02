@@ -206,11 +206,19 @@
     const images  = Array.isArray(data) ? data : (data.images  || []);
     const drawings = Array.isArray(data) ? []   : (data.drawings || []);
 
-    images.forEach((pos, i) => {
-      const item = items[i];
-      if (!item) return;
+    // Build position map (support both old index-based and new src-based formats)
+    const hasSrc = images.length > 0 && images[0].src;
+    const posMap = {};
+    if (hasSrc) {
+      images.forEach(pos => { posMap[pos.src] = pos; });
+    }
+
+    items.forEach((item, i) => {
+      const pos = hasSrc ? posMap[item.querySelector('img').src.split('/').pop()] : images[i];
+      if (!pos) { item.style.display = 'none'; return; }
       Object.assign(item.style, {
-        position: 'absolute', left: pos.x + 'px', top: pos.y + 'px',
+        position: 'absolute', display: '',
+        left: pos.x + 'px', top: pos.y + 'px',
         width: pos.w + 'px', height: pos.h + 'px', overflow: 'visible',
         transform: `rotate(${pos.rotation || 0}deg)`,
         transformOrigin: 'center center',
@@ -557,6 +565,21 @@
         h.style.cssText = 'position:absolute;width:12px;height:12px;background:#fff;border:2px solid #0066ff;box-sizing:border-box;z-index:2;' + style;
         widget.appendChild(h);
       });
+      // Store filename key for matching
+      widget.dataset.src = src.split('/').pop();
+
+      // Delete button
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '✕';
+      delBtn.style.cssText = 'position:absolute;top:-26px;right:0;background:#ff3333;color:#fff;border:none;padding:3px 8px;font:bold 11px monospace;cursor:pointer;border-radius:2px;z-index:3;';
+      delBtn.addEventListener('mousedown', e => e.stopPropagation());
+      delBtn.addEventListener('click', () => {
+        widget.dataset.deleted = 'true';
+        widget.style.opacity = '0.2';
+        widget.style.pointerEvents = 'none';
+      });
+      widget.appendChild(delBtn);
+
       // Rotation handle
       const rotHandle = document.createElement('div');
       rotHandle.style.cssText = 'position:absolute;top:-38px;left:calc(50% - 11px);width:22px;height:22px;background:#fff;border:2px solid #0066ff;border-radius:50%;cursor:grab;z-index:3;font-size:14px;line-height:18px;text-align:center;user-select:none;';
@@ -671,33 +694,36 @@
 
       let maxBottom = 0;
 
-      this.widgets.forEach((widget, i) => {
-        const item = items[i];
-        if (!item) return;
+      // Build position map by filename (skip deleted widgets)
+      const posMap = {};
+      this.widgets.forEach(widget => {
+        if (widget.dataset.deleted) return;
+        const key = widget.dataset.src;
+        posMap[key] = {
+          x: parseFloat(widget.style.left) - gridOffX,
+          y: parseFloat(widget.style.top)  - gridOffY,
+          w: parseFloat(widget.style.width),
+          h: parseFloat(widget.style.height),
+          rotation: parseFloat(widget.dataset.rotation || 0),
+        };
+      });
 
-        // Widget positions are document-absolute; make them relative to grid
-        const x = parseFloat(widget.style.left) - gridOffX;
-        const y = parseFloat(widget.style.top)  - gridOffY;
-        const w = parseFloat(widget.style.width);
-        const h = parseFloat(widget.style.height);
-
-        const rotation = parseFloat(widget.dataset.rotation || 0);
-
+      items.forEach(item => {
+        const filename = item.querySelector('img').src.split('/').pop();
+        const pos = posMap[filename];
+        if (!pos) { item.style.display = 'none'; return; }
         Object.assign(item.style, {
-          position: 'absolute',
-          left: x + 'px', top: y + 'px',
-          width: w + 'px', height: h + 'px',
+          position: 'absolute', display: '',
+          left: pos.x + 'px', top: pos.y + 'px',
+          width: pos.w + 'px', height: pos.h + 'px',
           overflow: 'visible',
-          transform: `rotate(${rotation}deg)`,
+          transform: `rotate(${pos.rotation}deg)`,
           transformOrigin: 'center center',
         });
-
         const img = item.querySelector('img');
-        img.style.width = '100%';
-        img.style.height = '100%';
+        img.style.width = '100%'; img.style.height = '100%';
         img.style.objectFit = 'cover';
-
-        maxBottom = Math.max(maxBottom, y + h);
+        maxBottom = Math.max(maxBottom, pos.y + pos.h);
       });
 
       // Switch grid from CSS grid to free-form canvas
@@ -706,13 +732,16 @@
       grid.style.height   = (maxBottom + 60) + 'px';
 
       // Persist layout
-      const layout = this.widgets.map(widget => ({
-        x: parseFloat(widget.style.left) - gridOffX,
-        y: parseFloat(widget.style.top)  - gridOffY,
-        w: parseFloat(widget.style.width),
-        h: parseFloat(widget.style.height),
-        rotation: parseFloat(widget.dataset.rotation || 0),
-      }));
+      const layout = this.widgets
+        .filter(widget => !widget.dataset.deleted)
+        .map(widget => ({
+          src: widget.dataset.src,
+          x: parseFloat(widget.style.left) - gridOffX,
+          y: parseFloat(widget.style.top)  - gridOffY,
+          w: parseFloat(widget.style.width),
+          h: parseFloat(widget.style.height),
+          rotation: parseFloat(widget.dataset.rotation || 0),
+        }));
       const drawings = this.drawWidgets.map(widget => ({
         x: parseFloat(widget.style.left) - gridOffX,
         y: parseFloat(widget.style.top)  - gridOffY,
