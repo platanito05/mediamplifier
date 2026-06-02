@@ -193,7 +193,7 @@
   }
 
   // ── Hardcoded layout fallback (used on GitHub Pages where localStorage is empty) ──
-  const LAYOUT_FALLBACK = {"images":[{"x":118,"y":61.981,"w":571,"h":807.689,"rotation":0},{"x":853,"y":32.8,"w":487,"h":688.87,"rotation":6.8489},{"x":1055,"y":935.92,"w":321,"h":167.677,"rotation":-1.34778},{"x":517,"y":1197.42,"w":476,"h":595,"rotation":0},{"x":91,"y":1286.94,"w":355,"h":502.154,"rotation":-4.43811},{"x":970,"y":1234.7,"w":491,"h":618.337,"rotation":0},{"x":44,"y":1767.58,"w":485,"h":606.25,"rotation":0},{"x":492,"y":1733.08,"w":491,"h":613.75,"rotation":-2.68546},{"x":516,"y":715.08,"w":422,"h":527.5,"rotation":-1.95251},{"x":127,"y":945.8,"w":258,"h":245.545,"rotation":0},{"x":13,"y":2228.83,"w":509,"h":636.25,"rotation":1.24339},{"x":971,"y":1763.58,"w":478,"h":597.5,"rotation":0},{"x":578,"y":2326.66,"w":349.007,"h":493.673,"rotation":-2.66548}],"drawings":[]};
+  const LAYOUT_FALLBACK = {"viewportWidth":1470,"images":[{"x":118,"y":61.981,"w":571,"h":807.689,"rotation":0},{"x":853,"y":32.8,"w":487,"h":688.87,"rotation":6.8489},{"x":1055,"y":935.92,"w":321,"h":167.677,"rotation":-1.34778},{"x":517,"y":1197.42,"w":476,"h":595,"rotation":0},{"x":91,"y":1286.94,"w":355,"h":502.154,"rotation":-4.43811},{"x":970,"y":1234.7,"w":491,"h":618.337,"rotation":0},{"x":44,"y":1767.58,"w":485,"h":606.25,"rotation":0},{"x":492,"y":1733.08,"w":491,"h":613.75,"rotation":-2.68546},{"x":516,"y":715.08,"w":422,"h":527.5,"rotation":-1.95251},{"x":127,"y":945.8,"w":258,"h":245.545,"rotation":0},{"x":13,"y":2228.83,"w":509,"h":636.25,"rotation":1.24339},{"x":971,"y":1763.58,"w":478,"h":597.5,"rotation":0},{"x":578,"y":2326.66,"w":349.007,"h":493.673,"rotation":-2.66548}],"drawings":[]};
 
   (function restoreLayout() {
     if (params.has('preview')) return; // skip saved layout in preview mode
@@ -232,9 +232,21 @@
       grid.appendChild(el);
       maxBottom = Math.max(maxBottom, d.y + d.h);
     });
+    const designW = data.viewportWidth || 1470;
+    const designH = maxBottom + 60;
     grid.style.display = 'block';
     grid.style.position = 'relative';
-    grid.style.height = (maxBottom + 60) + 'px';
+    grid.style.width = designW + 'px';
+    grid.style.height = designH + 'px';
+
+    function applyScale() {
+      const scale = window.innerWidth / designW;
+      grid.style.transform = `scale(${scale})`;
+      grid.style.transformOrigin = 'top left';
+      grid.style.marginBottom = (designH * scale - designH) + 'px';
+    }
+    applyScale();
+    window.addEventListener('resize', applyScale);
 
     // Restore drawing overlay
     const savedDrawing = localStorage.getItem('mediaDrawing');
@@ -708,7 +720,7 @@
         h: parseFloat(widget.style.height),
         src: widget.querySelector('img').src,
       }));
-      localStorage.setItem('mediaLayout', JSON.stringify({ images: layout, drawings }));
+      localStorage.setItem('mediaLayout', JSON.stringify({ viewportWidth: window.innerWidth, images: layout, drawings }));
 
       // Apply movable drawing widgets
       document.querySelectorAll('.drawing-item').forEach(el => el.remove());
