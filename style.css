@@ -53,22 +53,31 @@ header {
   display: block;
 }
 
-/* ── Gallery — 6-column collage grid ── */
+/* ── Gallery — 6-column balanced grid ── */
 .gallery {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 0;
-  align-items: start;
 }
 
+/* All cells share a portrait base ratio — creates balanced rows */
 .gallery-item {
   overflow: hidden;
+  aspect-ratio: 4 / 5;
 }
 
+/* Full-width landscape row gets a panoramic ratio */
+.gallery-item.col-6 {
+  aspect-ratio: 5 / 2;
+}
+
+/* Images fill their cell completely */
 .gallery-item img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* Column spans — 6 col grid */
