@@ -53,16 +53,16 @@ header {
   display: block;
 }
 
-/* ── Gallery (2-column masonry like gabrielledatau.com) ── */
+/* ── Gallery — 6-column collage grid ── */
 .gallery {
-  column-count: 2;
-  column-gap: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  align-items: start;
 }
 
 .gallery-item {
-  break-inside: avoid;
-  display: block;
-  width: 100%;
+  overflow: hidden;
 }
 
 .gallery-item img {
@@ -71,11 +71,13 @@ header {
   height: auto;
 }
 
-.caption {
-  display: none;
-}
+/* Column spans — 6 col grid */
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-6 { grid-column: span 6; }
 
-/* ── Edit toggle button ── */
+/* ── Edit toggle ── */
 .edit-toggle {
   position: fixed;
   bottom: 24px;
@@ -94,11 +96,12 @@ header {
 
 /* ── Mobile ── */
 @media (max-width: 680px) {
-  header {
-    padding: 16px 20px;
-  }
+  header { padding: 16px 20px; }
 
   .gallery {
-    column-count: 1;
+    grid-template-columns: 1fr 1fr;
   }
+
+  .col-2, .col-3, .col-4 { grid-column: span 1; }
+  .col-6 { grid-column: span 2; }
 }
