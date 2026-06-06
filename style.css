@@ -170,15 +170,23 @@ body.preview-mode .grid {
 /* ── Mobile ── */
 @media (max-width: 680px) {
   header {
-    padding: 20px;
+    padding: 16px 20px;
   }
 
-  /* Override editor absolute positioning — reset to clean single column */
+  .logo {
+    height: 60px;
+  }
+
+  /* 2-column square grid — JS freeform layout is skipped on mobile */
   .grid {
-    display: block !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2px !important;
     position: static !important;
     height: auto !important;
     width: 100% !important;
+    transform: none !important;
+    margin-bottom: 0 !important;
   }
 
   .item {
@@ -187,14 +195,16 @@ body.preview-mode .grid {
     height: auto !important;
     left: auto !important;
     top: auto !important;
+    transform: none !important;
     display: block;
     overflow: hidden;
+    aspect-ratio: 1 / 1;
   }
 
   .item img {
     width: 100% !important;
-    height: auto !important;
-    object-fit: unset !important;
+    height: 100% !important;
+    object-fit: cover !important;
     display: block;
   }
 }

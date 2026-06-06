@@ -197,6 +197,7 @@
 
   (function restoreLayout() {
     if (params.has('preview')) return; // skip saved layout in preview mode
+    if (window.innerWidth <= 680) return; // mobile: CSS grid handles layout
     const saved = localStorage.getItem('mediaLayout');
     const data = saved ? JSON.parse(saved) : LAYOUT_FALLBACK;
     if (!data) return;
