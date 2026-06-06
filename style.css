@@ -177,11 +177,9 @@ body.preview-mode .grid {
     height: 60px;
   }
 
-  /* 2-column square grid — JS freeform layout is skipped on mobile */
+  /* 1-column full-width — JS freeform layout is skipped on mobile */
   .grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 2px !important;
+    display: block !important;
     position: static !important;
     height: auto !important;
     width: 100% !important;
@@ -198,13 +196,13 @@ body.preview-mode .grid {
     transform: none !important;
     display: block;
     overflow: hidden;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: unset;
   }
 
   .item img {
     width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    height: auto !important;
+    object-fit: unset !important;
     display: block;
   }
 }
