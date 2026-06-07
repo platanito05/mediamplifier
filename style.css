@@ -205,4 +205,11 @@ body.preview-mode .grid {
     object-fit: unset !important;
     display: block;
   }
+
+  /* Landscape images — show at reduced width, centered */
+  .item[data-compact] {
+    max-width: 65%;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
