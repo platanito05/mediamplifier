@@ -208,7 +208,7 @@ body.preview-mode .grid {
 
   /* Landscape images — show at reduced width, centered */
   .item[data-compact] {
-    max-width: 65%;
+    max-width: 45%;
     margin-left: auto;
     margin-right: auto;
   }
