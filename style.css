@@ -186,8 +186,17 @@ body.preview-mode .grid {
       linear-gradient(180deg, #a0cfe6 0%, #badfef 20%, #ceeaf5 40%, #dff2fa 65%, #eef8fd 85%, #f6fbff 100%);
   }
 
+  /* Header floats transparently over the sky */
   header {
-    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: transparent;
+    z-index: 500;
+    padding: 16px 20px;
+  }
+
+  .logo {
+    height: 52px;
   }
 
   /* Hide regular grid — mobile gallery takes over */
@@ -195,10 +204,10 @@ body.preview-mode .grid {
     display: none !important;
   }
 
-  /* ── Mobile swipe gallery ── */
+  /* ── Mobile swipe gallery — starts below floating header ── */
   #mob-gallery {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 44px;
+    top: 84px; left: 0; right: 0; bottom: 44px;
     display: flex;
     align-items: center;
     justify-content: center;

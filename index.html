@@ -326,6 +326,9 @@
         dots[cur].classList.add('active');
       }
 
+      // Block all vertical scroll on iOS (overflow:hidden alone isn't enough)
+      document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
       // Touch swipe
       let tx = 0;
       gallery.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
