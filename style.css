@@ -237,10 +237,11 @@ body.preview-mode .grid {
 
   .mob-caption {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.45);
+    font-size: 13px;
+    font-weight: 700;
+    color: #000;
     margin-top: 14px;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.02em;
   }
 
   /* ── Dots ── */

@@ -291,20 +291,17 @@
       gallery.appendChild(track);
 
       // Slides
-      const slides = items.map((item) => {
+      const slides = items.map((item, i) => {
         const slide = document.createElement('div');
         slide.className = 'mob-slide';
         const srcImg = item.querySelector('img');
         const img = document.createElement('img');
         img.src = srcImg.src; img.alt = srcImg.alt;
         slide.appendChild(img);
-        const capEl = item.querySelector('.caption');
-        if (capEl) {
-          const cap = document.createElement('span');
-          cap.className = 'mob-caption';
-          cap.textContent = capEl.textContent;
-          slide.appendChild(cap);
-        }
+        const cap = document.createElement('span');
+        cap.className = 'mob-caption';
+        cap.textContent = String(i + 1).padStart(2, '0');
+        slide.appendChild(cap);
         track.appendChild(slide);
         return slide;
       });
