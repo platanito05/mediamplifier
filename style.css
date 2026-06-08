@@ -208,27 +208,24 @@ body.preview-mode .grid {
   #mob-gallery {
     position: fixed;
     top: 84px; left: 0; right: 0; bottom: 44px;
+    overflow: hidden;
+  }
+
+  #mob-track {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 100%;
+    will-change: transform;
   }
 
   .mob-slide {
-    position: absolute;
-    inset: 0;
+    flex-shrink: 0;
+    width: 100vw;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 0 16px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  .mob-slide.active {
-    opacity: 1;
-    pointer-events: auto;
   }
 
   .mob-slide img {

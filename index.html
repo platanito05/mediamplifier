@@ -279,17 +279,21 @@
         .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
       if (!items.length) return;
 
-      let cur = 0;
+      let cur = 0, trackX = 0, startX = 0, dragging = false;
 
-      // Gallery container
+      // Gallery + sliding track
       const gallery = document.createElement('div');
       gallery.id = 'mob-gallery';
       document.body.appendChild(gallery);
 
+      const track = document.createElement('div');
+      track.id = 'mob-track';
+      gallery.appendChild(track);
+
       // Slides
-      const slides = items.map((item, i) => {
+      const slides = items.map((item) => {
         const slide = document.createElement('div');
-        slide.className = 'mob-slide' + (i === 0 ? ' active' : '');
+        slide.className = 'mob-slide';
         const srcImg = item.querySelector('img');
         const img = document.createElement('img');
         img.src = srcImg.src; img.alt = srcImg.alt;
@@ -301,7 +305,7 @@
           cap.textContent = capEl.textContent;
           slide.appendChild(cap);
         }
-        gallery.appendChild(slide);
+        track.appendChild(slide);
         return slide;
       });
 
@@ -312,35 +316,58 @@
       const dots = slides.map((_, i) => {
         const dot = document.createElement('div');
         dot.className = 'mob-dot' + (i === 0 ? ' active' : '');
-        dot.addEventListener('click', () => go(i));
+        dot.addEventListener('click', () => goTo(i));
         dotsEl.appendChild(dot);
         return dot;
       });
 
-      function go(n) {
-        if (n < 0 || n >= slides.length) return;
-        slides[cur].classList.remove('active');
-        dots[cur].classList.remove('active');
-        cur = n;
-        slides[cur].classList.add('active');
-        dots[cur].classList.add('active');
+      function moveTo(x, animate) {
+        track.style.transition = animate
+          ? 'transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          : 'none';
+        track.style.transform = `translateX(${x}px)`;
       }
 
-      // Block all vertical scroll on iOS (overflow:hidden alone isn't enough)
+      function goTo(n) {
+        n = Math.max(0, Math.min(n, slides.length - 1));
+        dots[cur].classList.remove('active');
+        cur = n;
+        dots[cur].classList.add('active');
+        trackX = -cur * window.innerWidth;
+        moveTo(trackX, true);
+      }
+
+      // Block vertical scroll on iOS
       document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
-      // Touch swipe
-      let tx = 0;
-      gallery.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+      // Drag — follows finger in real time
+      gallery.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        dragging = true;
+        track.style.transition = 'none';
+      }, { passive: true });
+
+      gallery.addEventListener('touchmove', e => {
+        if (!dragging) return;
+        let dx = e.touches[0].clientX - startX;
+        // Resistance at edges
+        if ((cur === 0 && dx > 0) || (cur === slides.length - 1 && dx < 0)) dx *= 0.25;
+        moveTo(trackX + dx, false);
+      }, { passive: true });
+
       gallery.addEventListener('touchend', e => {
-        const d = tx - e.changedTouches[0].clientX;
-        if (Math.abs(d) > 40) go(cur + (d > 0 ? 1 : -1));
+        if (!dragging) return;
+        dragging = false;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (dx < -50) goTo(cur + 1);
+        else if (dx > 50) goTo(cur - 1);
+        else goTo(cur); // snap back
       }, { passive: true });
 
       // Arrow keys
       window.addEventListener('keydown', e => {
-        if (e.key === 'ArrowRight') go(cur + 1);
-        if (e.key === 'ArrowLeft') go(cur - 1);
+        if (e.key === 'ArrowRight') goTo(cur + 1);
+        if (e.key === 'ArrowLeft') goTo(cur - 1);
       });
     })();
   }
