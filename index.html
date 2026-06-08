@@ -271,6 +271,77 @@
     }
   })();
 
+  // ── Mobile swipe gallery ──────────────────────────────────────
+  if (window.innerWidth <= 680 && !params.has('preview')) {
+    (function initMobileGallery() {
+      const SKIP = ['horse.png', 'blaz.jpg'];
+      const items = Array.from(document.querySelectorAll('.item'))
+        .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
+      if (!items.length) return;
+
+      let cur = 0;
+
+      // Gallery container
+      const gallery = document.createElement('div');
+      gallery.id = 'mob-gallery';
+      document.body.appendChild(gallery);
+
+      // Slides
+      const slides = items.map((item, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'mob-slide' + (i === 0 ? ' active' : '');
+        const srcImg = item.querySelector('img');
+        const img = document.createElement('img');
+        img.src = srcImg.src; img.alt = srcImg.alt;
+        slide.appendChild(img);
+        const capEl = item.querySelector('.caption');
+        if (capEl) {
+          const cap = document.createElement('span');
+          cap.className = 'mob-caption';
+          cap.textContent = capEl.textContent;
+          slide.appendChild(cap);
+        }
+        gallery.appendChild(slide);
+        return slide;
+      });
+
+      // Dots
+      const dotsEl = document.createElement('div');
+      dotsEl.id = 'mob-dots';
+      document.body.appendChild(dotsEl);
+      const dots = slides.map((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'mob-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => go(i));
+        dotsEl.appendChild(dot);
+        return dot;
+      });
+
+      function go(n) {
+        if (n < 0 || n >= slides.length) return;
+        slides[cur].classList.remove('active');
+        dots[cur].classList.remove('active');
+        cur = n;
+        slides[cur].classList.add('active');
+        dots[cur].classList.add('active');
+      }
+
+      // Touch swipe
+      let tx = 0;
+      gallery.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+      gallery.addEventListener('touchend', e => {
+        const d = tx - e.changedTouches[0].clientX;
+        if (Math.abs(d) > 40) go(cur + (d > 0 ? 1 : -1));
+      }, { passive: true });
+
+      // Arrow keys
+      window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight') go(cur + 1);
+        if (e.key === 'ArrowLeft') go(cur - 1);
+      });
+    })();
+  }
+
   const editor = {
     canvas: null, active: false, widgets: [], drawWidgets: [],
 
