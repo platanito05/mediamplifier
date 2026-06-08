@@ -197,6 +197,7 @@ body.preview-mode .grid {
     display: block;
     overflow: hidden;
     aspect-ratio: unset;
+    margin: 0 0 10px 0;
   }
 
   .item img {
