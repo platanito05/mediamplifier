@@ -196,7 +196,7 @@
   const LAYOUT_FALLBACK = {"viewportWidth":1470,"images":[{"x":118,"y":61.981,"w":571,"h":807.689,"rotation":0},{"x":853,"y":32.8,"w":487,"h":688.87,"rotation":6.8489},{"x":1055,"y":935.92,"w":321,"h":167.677,"rotation":-1.34778},{"x":517,"y":1197.42,"w":476,"h":595,"rotation":0},{"x":91,"y":1286.94,"w":355,"h":502.154,"rotation":-4.43811},{"x":970,"y":1234.7,"w":491,"h":618.337,"rotation":0},{"x":44,"y":1767.58,"w":485,"h":606.25,"rotation":0},{"x":492,"y":1733.08,"w":491,"h":613.75,"rotation":-2.68546},{"x":516,"y":715.08,"w":422,"h":527.5,"rotation":-1.95251},{"x":127,"y":945.8,"w":258,"h":245.545,"rotation":0},{"x":13,"y":2228.83,"w":509,"h":636.25,"rotation":1.24339},{"x":971,"y":1763.58,"w":478,"h":597.5,"rotation":0},{"x":578,"y":2326.66,"w":349.007,"h":493.673,"rotation":-2.66548}],"drawings":[]};
 
   (function restoreLayout() {
-    if (params.has('preview')) return; // skip saved layout in preview mode
+    if (!params.has('edit')) return; // freeform layout only lives in edit mode now
     if (window.innerWidth <= 680) return; // mobile: CSS grid handles layout
     const saved = localStorage.getItem('mediaLayout');
     const data = saved ? JSON.parse(saved) : LAYOUT_FALLBACK;
@@ -271,17 +271,30 @@
     }
   })();
 
-  // ── Mobile swipe gallery ──────────────────────────────────────
-  if (window.innerWidth <= 680 && !params.has('preview')) {
-    (function initMobileGallery() {
-      const SKIP = ['horse.png', 'blaz.jpg'];
-      const items = Array.from(document.querySelectorAll('.item'))
-        .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
-      if (!items.length) return;
+  // ── Galleries: mobile horizontal swipe / desktop vertical scroll ──
+  // Mode is re-evaluated on resize so the right gallery is always active
+  // (also covers environments where innerWidth is 0 during initial load).
+  if (!params.has('preview') && !params.has('edit')) {
+    const SKIP = ['horse.png', 'blaz.jpg'];
+    const galleryItems = Array.from(document.querySelectorAll('.item'))
+      .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
 
+    function makeSlideContent(item, i, container) {
+      const srcImg = item.querySelector('img');
+      const img = document.createElement('img');
+      img.src = srcImg.src; img.alt = srcImg.alt;
+      container.appendChild(img);
+      const cap = document.createElement('span');
+      cap.textContent = String(i + 1).padStart(2, '0');
+      container.appendChild(cap);
+      return cap;
+    }
+
+    function buildMobile() {
+      const ctl = new AbortController();
+      const sig = { signal: ctl.signal };
       let cur = 0, trackX = 0, startX = 0, dragging = false;
 
-      // Gallery + sliding track
       const gallery = document.createElement('div');
       gallery.id = 'mob-gallery';
       document.body.appendChild(gallery);
@@ -290,23 +303,14 @@
       track.id = 'mob-track';
       gallery.appendChild(track);
 
-      // Slides
-      const slides = items.map((item, i) => {
+      const slides = galleryItems.map((item, i) => {
         const slide = document.createElement('div');
         slide.className = 'mob-slide';
-        const srcImg = item.querySelector('img');
-        const img = document.createElement('img');
-        img.src = srcImg.src; img.alt = srcImg.alt;
-        slide.appendChild(img);
-        const cap = document.createElement('span');
-        cap.className = 'mob-caption';
-        cap.textContent = String(i + 1).padStart(2, '0');
-        slide.appendChild(cap);
+        makeSlideContent(item, i, slide).className = 'mob-caption';
         track.appendChild(slide);
         return slide;
       });
 
-      // Dots
       const dotsEl = document.createElement('div');
       dotsEl.id = 'mob-dots';
       document.body.appendChild(dotsEl);
@@ -335,7 +339,7 @@
       }
 
       // Block vertical scroll on iOS
-      document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+      document.addEventListener('touchmove', e => e.preventDefault(), { passive: false, signal: ctl.signal });
 
       // Drag — follows finger in real time
       gallery.addEventListener('touchstart', e => {
@@ -361,12 +365,78 @@
         else goTo(cur); // snap back
       }, { passive: true });
 
-      // Arrow keys
       window.addEventListener('keydown', e => {
         if (e.key === 'ArrowRight') goTo(cur + 1);
         if (e.key === 'ArrowLeft') goTo(cur - 1);
+      }, sig);
+
+      return () => { ctl.abort(); gallery.remove(); dotsEl.remove(); };
+    }
+
+    // Desktop: images scale up reaching viewport center and shrink leaving,
+    // transform origin sliding top→bottom (scroll-scrubbed, sandwichpress style).
+    function buildDesktop() {
+      const ctl = new AbortController();
+      const sig = { signal: ctl.signal };
+
+      document.body.classList.add('vgallery');
+
+      const gallery = document.createElement('div');
+      gallery.id = 'desk-gallery';
+      document.body.appendChild(gallery);
+
+      const wraps = galleryItems.map((item, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'desk-item';
+        const inner = document.createElement('div');
+        inner.className = 'desk-inner';
+        makeSlideContent(item, i, inner).className = 'desk-caption';
+        wrap.appendChild(inner);
+        gallery.appendChild(wrap);
+        return { wrap, inner };
       });
-    })();
+
+      // p: 0 = item center at viewport bottom, 0.5 = centered, 1 = at top.
+      // scale 0.6 → 1 → 0.6, origin slides 50% 0% → 50% 50% → 50% 100%.
+      function update() {
+        const vh = window.innerHeight;
+        wraps.forEach(({ wrap, inner }) => {
+          const r = wrap.getBoundingClientRect();
+          if (r.bottom < -vh || r.top > vh * 2) return; // far offscreen
+          let p = 1 - (r.top + r.height / 2) / vh;
+          p = Math.max(0, Math.min(1, p));
+          const scale = 0.6 + 0.4 * (1 - Math.abs(2 * p - 1));
+          inner.style.transform = `scale(${scale})`;
+          inner.style.transformOrigin = `50% ${p * 100}%`;
+        });
+      }
+
+      window.addEventListener('scroll', update, { passive: true, signal: ctl.signal });
+      window.addEventListener('resize', update, sig);
+      update();
+
+      return () => {
+        ctl.abort();
+        gallery.remove();
+        document.body.classList.remove('vgallery');
+        window.scrollTo(0, 0);
+      };
+    }
+
+    let galleryMode = null, teardownGallery = null;
+
+    function decideGallery() {
+      const w = window.innerWidth;
+      if (!w || !galleryItems.length) return; // viewport not laid out yet
+      const next = w <= 680 ? 'mobile' : 'desktop';
+      if (next === galleryMode) return;
+      if (teardownGallery) teardownGallery();
+      galleryMode = next;
+      teardownGallery = next === 'mobile' ? buildMobile() : buildDesktop();
+    }
+
+    window.addEventListener('resize', decideGallery);
+    decideGallery();
   }
 
   const editor = {

@@ -5,20 +5,28 @@
 }
 
 body {
-  background: #fff;
   color: #000;
   cursor: url('images/horse_cursor.png?v=3') 4 1, auto;
+  background:
+    radial-gradient(ellipse 60% 20% at 20% 22%, rgba(255,255,255,0.85) 0%, transparent 100%),
+    radial-gradient(ellipse 35% 15% at 72% 14%, rgba(255,255,255,0.75) 0%, transparent 100%),
+    radial-gradient(ellipse 45% 18% at 50% 42%, rgba(255,255,255,0.55) 0%, transparent 100%),
+    radial-gradient(ellipse 55% 14% at 82% 38%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(ellipse 40% 16% at 28% 62%, rgba(255,255,255,0.40) 0%, transparent 100%),
+    linear-gradient(180deg, #a0cfe6 0%, #badfef 20%, #ceeaf5 40%, #dff2fa 65%, #eef8fd 85%, #f6fbff 100%);
+  background-attachment: fixed;
 }
 
-/* ── Header ── */
+/* ── Header — floats transparently over the sky ── */
 header {
   padding: 20px 32px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  position: relative;
-  z-index: 100;
-  background: #fff;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 500;
+  background: transparent;
 }
 
 .header-name {
@@ -55,6 +63,48 @@ header {
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+/* Hidden when the scroll gallery takes over (all non-edit views) */
+body.vgallery .grid {
+  display: none !important;
+}
+
+/* ── Desktop vertical scroll gallery ── */
+#desk-gallery {
+  padding: 16vh 0 10vh;
+}
+
+.desk-item {
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Inner wrapper takes the scale transform so the outer item's
+   geometry stays stable for scroll measurement */
+.desk-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform;
+}
+
+.desk-item img {
+  max-width: 56vw;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+}
+
+.desk-caption {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+  margin-top: 16px;
+  letter-spacing: 0.02em;
 }
 
 .item {
@@ -177,22 +227,14 @@ body.preview-mode .grid {
 
   body {
     min-height: 100dvh;
-    background:
-      radial-gradient(ellipse 60% 20% at 20% 22%, rgba(255,255,255,0.85) 0%, transparent 100%),
-      radial-gradient(ellipse 35% 15% at 72% 14%, rgba(255,255,255,0.75) 0%, transparent 100%),
-      radial-gradient(ellipse 45% 18% at 50% 42%, rgba(255,255,255,0.55) 0%, transparent 100%),
-      radial-gradient(ellipse 55% 14% at 82% 38%, rgba(255,255,255,0.45) 0%, transparent 100%),
-      radial-gradient(ellipse 40% 16% at 28% 62%, rgba(255,255,255,0.40) 0%, transparent 100%),
-      linear-gradient(180deg, #a0cfe6 0%, #badfef 20%, #ceeaf5 40%, #dff2fa 65%, #eef8fd 85%, #f6fbff 100%);
   }
 
-  /* Header floats transparently over the sky */
   header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    background: transparent;
-    z-index: 500;
     padding: 16px 20px;
+  }
+
+  #desk-gallery {
+    display: none;
   }
 
   .logo {
