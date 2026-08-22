@@ -219,12 +219,6 @@ body.preview-mode .grid {
 
 /* ── Mobile ── */
 @media (max-width: 680px) {
-  html, body {
-    overflow: hidden;
-    height: 100%;
-    height: 100dvh;
-  }
-
   body {
     min-height: 100dvh;
   }
@@ -241,73 +235,35 @@ body.preview-mode .grid {
     height: 52px;
   }
 
-  /* Hide regular grid — mobile gallery takes over */
+  /* Vertical scroll grid */
   .grid {
-    display: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding-top: 84px;
+    gap: 3px;
   }
 
-  /* ── Mobile swipe gallery — starts below floating header ── */
-  #mob-gallery {
-    position: fixed;
-    top: 84px; left: 0; right: 0; bottom: 44px;
-    overflow: hidden;
+  .item {
+    position: static !important;
+    width: 100% !important;
+    height: 80vw !important;
+    overflow: hidden !important;
+    transform: none !important;
   }
 
-  #mob-track {
-    display: flex;
-    height: 100%;
-    will-change: transform;
-  }
-
-  .mob-slide {
-    flex-shrink: 0;
-    width: 100vw;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 16px;
-  }
-
-  .mob-slide img {
-    max-width: 88vw;
-    max-height: 68vh;
-    object-fit: contain;
+  .item img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
     display: block;
   }
 
-  .mob-caption {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #000;
-    margin-top: 14px;
-    letter-spacing: 0.02em;
-  }
-
-  /* ── Dots ── */
-  #mob-dots {
-    position: fixed;
-    bottom: max(16px, env(safe-area-inset-bottom));
-    left: 0; right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-    z-index: 200;
-    padding-bottom: 6px;
-  }
-
-  .mob-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.22);
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .mob-dot.active {
-    background: rgba(0, 0, 0, 0.65);
+  .caption {
+    display: none !important;
   }
 }
