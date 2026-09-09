@@ -117,6 +117,45 @@ body.vgallery .grid {
   height: auto;
 }
 
+/* A single project can contain several pages read from left to right. */
+.piece-set {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.piece-set img {
+  flex: 0 0 auto;
+}
+
+.desk-piece-row,
+.viewer-piece-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  max-width: 94vw;
+}
+
+.desk-piece-row {
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 2vw;
+}
+
+.desk-piece-row::-webkit-scrollbar,
+.viewer-piece-row::-webkit-scrollbar {
+  display: none;
+}
+
+.desk-piece-row img {
+  flex: 0 0 auto;
+  width: 28vw;
+  max-width: 28vw;
+  max-height: 66vh;
+  object-fit: contain;
+}
+
 /* ── Preview mode: fullscreen piece viewer ── */
 body.preview-mode .grid {
   display: none !important;
@@ -165,6 +204,21 @@ body.preview-mode .grid {
   max-height: 78vh;
   object-fit: contain;
   display: block;
+}
+
+.viewer-piece-row {
+  max-width: 92vw;
+  overflow-x: auto;
+  justify-content: flex-start;
+  padding: 0 4vw;
+}
+
+.viewer-piece-row img {
+  flex: 0 0 auto;
+  width: 27vw;
+  max-width: 27vw;
+  max-height: 72vh;
+  object-fit: contain;
 }
 
 .slide .slide-caption {
@@ -254,6 +308,44 @@ body.preview-mode .grid {
     height: 80vw !important;
     overflow: hidden !important;
     transform: none !important;
+  }
+
+  .item-golf {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .item-golf .piece-set {
+    width: 100%;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 0 12vw;
+    scrollbar-width: none;
+  }
+
+  .item-golf .piece-set::-webkit-scrollbar {
+    display: none;
+  }
+
+  .item-golf .piece-set img {
+    width: 76vw !important;
+    height: auto !important;
+    flex: 0 0 76vw;
+    object-fit: contain !important;
+  }
+
+  .viewer-piece-row {
+    width: 100vw;
+    max-width: 100vw;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 0 12vw;
+  }
+
+  .viewer-piece-row img {
+    width: 76vw;
+    max-width: 76vw;
+    max-height: 78vh;
   }
 
   .item img {

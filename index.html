@@ -20,6 +20,15 @@
 
   <main class="grid">
 
+    <div class="item item-golf" data-gallery-group="golf">
+      <div class="piece-set" aria-label="Golf">
+        <img src="images/golfcover.png" alt="Golf, portada">
+        <img src="images/golf-page-02.png" alt="Golf, página 2">
+        <img src="images/golf-page-04.png" alt="Golf, página 4">
+      </div>
+      <span class="caption">Golf</span>
+    </div>
+
     <div class="item">
       <img src="images/courtjester.png" alt="The Jester">
       <span class="caption">The Jester</span>
@@ -136,18 +145,38 @@
 
     // Preload all images so transitions are instant
     items.forEach(item => {
-      const preload = new Image();
-      preload.src = item.querySelector('img').src;
+      item.querySelectorAll('img').forEach(source => {
+        const preload = new Image();
+        preload.src = source.src;
+      });
     });
+
+    function appendItemVisual(item, parent) {
+      const set = item.querySelector('.piece-set');
+      if (set) {
+        const row = document.createElement('div');
+        row.className = 'viewer-piece-row';
+        set.querySelectorAll('img').forEach(source => {
+          const img = document.createElement('img');
+          img.src = source.src;
+          img.alt = source.alt;
+          row.appendChild(img);
+        });
+        parent.appendChild(row);
+        return;
+      }
+
+      const img = document.createElement('img');
+      img.src = item.querySelector('img').src;
+      img.alt = item.querySelector('img').alt;
+      parent.appendChild(img);
+    }
 
     // Create slides
     const slides = items.map((item, i) => {
       const slide = document.createElement('div');
       slide.className = 'slide' + (i === 0 ? ' active' : '');
-      const img = document.createElement('img');
-      img.src = item.querySelector('img').src;
-      img.alt = item.querySelector('img').alt;
-      slide.appendChild(img);
+      appendItemVisual(item, slide);
       const cap = item.querySelector('.caption');
       if (cap) {
         const caption = document.createElement('span');
@@ -295,10 +324,23 @@
       .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
 
     function makeSlideContent(item, i, container) {
-      const srcImg = item.querySelector('img');
-      const img = document.createElement('img');
-      img.src = srcImg.src; img.alt = srcImg.alt;
-      container.appendChild(img);
+      const set = item.querySelector('.piece-set');
+      if (set) {
+        const row = document.createElement('div');
+        row.className = 'desk-piece-row';
+        set.querySelectorAll('img').forEach(srcImg => {
+          const img = document.createElement('img');
+          img.src = srcImg.src;
+          img.alt = srcImg.alt;
+          row.appendChild(img);
+        });
+        container.appendChild(row);
+      } else {
+        const srcImg = item.querySelector('img');
+        const img = document.createElement('img');
+        img.src = srcImg.src; img.alt = srcImg.alt;
+        container.appendChild(img);
+      }
       const cap = document.createElement('span');
       cap.textContent = String(i + 1).padStart(2, '0');
       container.appendChild(cap);
