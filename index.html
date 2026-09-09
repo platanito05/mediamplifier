@@ -121,90 +121,69 @@
     document.getElementById('editBtn').style.display = 'block';
   }
 
-  if (params.has('preview')) {
+  if (params.has('preview') || params.has('project')) {
     document.body.classList.add('preview-mode');
     document.addEventListener('DOMContentLoaded', initViewer);
   }
 
   function initViewer() {
-    const items = Array.from(document.querySelectorAll('.item'));
+    document.body.classList.add('detail-mode');
+    const skip = ['horse.png', 'blaz.jpg'];
+    const items = Array.from(document.querySelectorAll('.item'))
+      .filter(item => !skip.some(src => item.querySelector('img').src.includes(src)));
     if (!items.length) return;
 
+    const projectNumber = Number.parseInt(params.get('project'), 10);
+    const item = Number.isInteger(projectNumber) && projectNumber > 0 && projectNumber <= items.length
+      ? items[projectNumber - 1]
+      : items[0];
+    const set = item.querySelector('.piece-set');
+    const sources = Array.from(set ? set.querySelectorAll('img') : [item.querySelector('img')]);
     let current = 0;
     let animating = false;
 
-    // Build viewer
     const viewer = document.createElement('div');
     viewer.id = 'viewer';
     document.body.appendChild(viewer);
 
-    // Build nav dots
-    const nav = document.createElement('div');
-    nav.id = 'viewer-nav';
-    document.body.appendChild(nav);
+    const close = document.createElement('a');
+    close.id = 'viewer-close';
+    close.href = '/';
+    close.textContent = 'Close';
+    viewer.appendChild(close);
 
-    // Preload all images so transitions are instant
-    items.forEach(item => {
-      item.querySelectorAll('img').forEach(source => {
-        const preload = new Image();
-        preload.src = source.src;
-      });
+    const counter = document.createElement('span');
+    counter.id = 'viewer-count';
+    viewer.appendChild(counter);
+
+    sources.forEach(source => {
+      const preload = new Image();
+      preload.src = source.src;
     });
 
-    function appendItemVisual(item, parent) {
-      const set = item.querySelector('.piece-set');
-      if (set) {
-        const row = document.createElement('div');
-        row.className = 'viewer-piece-row';
-        set.querySelectorAll('img').forEach(source => {
-          const img = document.createElement('img');
-          img.src = source.src;
-          img.alt = source.alt;
-          row.appendChild(img);
-        });
-        parent.appendChild(row);
-        return;
-      }
-
-      const img = document.createElement('img');
-      img.src = item.querySelector('img').src;
-      img.alt = item.querySelector('img').alt;
-      parent.appendChild(img);
-    }
-
-    // Create slides
-    const slides = items.map((item, i) => {
+    const slides = sources.map((source, i) => {
       const slide = document.createElement('div');
       slide.className = 'slide' + (i === 0 ? ' active' : '');
-      appendItemVisual(item, slide);
-      const cap = item.querySelector('.caption');
-      if (cap) {
-        const caption = document.createElement('span');
-        caption.className = 'slide-caption';
-        caption.textContent = cap.textContent;
-        slide.appendChild(caption);
-      }
+      const img = document.createElement('img');
+      img.src = source.src;
+      img.alt = source.alt;
+      slide.appendChild(img);
       viewer.appendChild(slide);
-
-      // Nav dot
-      const dot = document.createElement('div');
-      dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
-      dot.addEventListener('click', () => goTo(i));
-      nav.appendChild(dot);
-
       return slide;
     });
 
-    const dots = Array.from(nav.querySelectorAll('.nav-dot'));
+    function updateCounter() {
+      counter.textContent = `${current + 1}/${slides.length}`;
+    }
+    updateCounter();
 
     function goTo(next) {
       if (animating || next === current || next < 0 || next >= slides.length) return;
       animating = true;
       slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
       current = next;
       slides[current].classList.add('active');
-      dots[current].classList.add('active');
+      updateCounter();
       setTimeout(() => { animating = false; }, 150);
     }
 
@@ -223,15 +202,22 @@
 
     // Arrow keys
     window.addEventListener('keydown', e => {
-      if (e.key === 'ArrowDown') go(1);
-      if (e.key === 'ArrowUp') go(-1);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') go(1);
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'Escape') close.click();
     });
 
     // Touch
+    let touchX = 0;
     let touchY = 0;
-    window.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; });
+    window.addEventListener('touchstart', e => {
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+    });
     window.addEventListener('touchend', e => {
-      const diff = touchY - e.changedTouches[0].clientY;
+      const diffY = touchY - e.changedTouches[0].clientY;
+      const diffX = touchX - e.changedTouches[0].clientX;
+      const diff = Math.abs(diffY) > Math.abs(diffX) ? diffY : diffX;
       if (Math.abs(diff) > 40) go(diff > 0 ? 1 : -1);
     });
   }
@@ -315,107 +301,44 @@
     }
   })();
 
-  // ── Galleries: mobile horizontal swipe / desktop vertical scroll ──
-  // Mode is re-evaluated on resize so the right gallery is always active
-  // (also covers environments where innerWidth is 0 during initial load).
-  if (!params.has('preview') && !params.has('edit')) {
-    const SKIP = ['horse.png', 'blaz.jpg'];
+  // ── Project index ──
+  if (!params.has('preview') && !params.has('project') && !params.has('edit')) {
+    const skip = ['horse.png', 'blaz.jpg'];
     const galleryItems = Array.from(document.querySelectorAll('.item'))
-      .filter(item => !SKIP.some(s => item.querySelector('img').src.includes(s)));
+      .filter(item => !skip.some(src => item.querySelector('img').src.includes(src)));
 
-    function makeSlideContent(item, i, container) {
-      const set = item.querySelector('.piece-set');
-      if (set) {
-        const row = document.createElement('div');
-        row.className = 'desk-piece-row';
-        set.querySelectorAll('img').forEach(srcImg => {
-          const img = document.createElement('img');
-          img.src = srcImg.src;
-          img.alt = srcImg.alt;
-          row.appendChild(img);
-        });
-        container.appendChild(row);
-      } else {
-        const srcImg = item.querySelector('img');
-        const img = document.createElement('img');
-        img.src = srcImg.src; img.alt = srcImg.alt;
-        container.appendChild(img);
+    document.body.classList.add('index-mode');
+    const index = document.createElement('main');
+    index.id = 'project-index';
+
+    galleryItems.forEach((item, i) => {
+      const link = document.createElement('a');
+      link.className = 'project-card';
+      link.href = `?project=${i + 1}`;
+      const source = item.querySelector('.piece-set img') || item.querySelector('img');
+      const image = document.createElement('img');
+      image.src = source.src;
+      image.alt = source.alt;
+      link.appendChild(image);
+
+      const meta = document.createElement('span');
+      meta.className = 'project-meta';
+      const count = document.createElement('span');
+      count.className = 'project-count';
+      count.textContent = String(i + 1).padStart(2, '0');
+      meta.appendChild(count);
+      const caption = item.querySelector('.caption');
+      if (caption) {
+        const title = document.createElement('span');
+        title.className = 'project-title';
+        title.textContent = caption.textContent;
+        meta.appendChild(title);
       }
-      const cap = document.createElement('span');
-      cap.textContent = String(i + 1).padStart(2, '0');
-      container.appendChild(cap);
-      return cap;
-    }
+      link.appendChild(meta);
+      index.appendChild(link);
+    });
 
-    function buildMobile() {
-      // Mobile uses native CSS vertical scroll — CSS handles layout
-      return () => {};
-    }
-
-    // Desktop: images scale up reaching viewport center and shrink leaving,
-    // transform origin sliding top→bottom (scroll-scrubbed, sandwichpress style).
-    function buildDesktop() {
-      const ctl = new AbortController();
-      const sig = { signal: ctl.signal };
-
-      document.body.classList.add('vgallery');
-
-      const gallery = document.createElement('div');
-      gallery.id = 'desk-gallery';
-      document.body.appendChild(gallery);
-
-      const wraps = galleryItems.map((item, i) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'desk-item';
-        const inner = document.createElement('div');
-        inner.className = 'desk-inner';
-        makeSlideContent(item, i, inner).className = 'desk-caption';
-        wrap.appendChild(inner);
-        gallery.appendChild(wrap);
-        return { wrap, inner };
-      });
-
-      // p: 0 = item center at viewport bottom, 0.5 = centered, 1 = at top.
-      // scale 0.6 → 1 → 0.6, origin slides 50% 0% → 50% 50% → 50% 100%.
-      function update() {
-        const vh = window.innerHeight;
-        wraps.forEach(({ wrap, inner }) => {
-          const r = wrap.getBoundingClientRect();
-          if (r.bottom < -vh || r.top > vh * 2) return; // far offscreen
-          let p = 1 - (r.top + r.height / 2) / vh;
-          p = Math.max(0, Math.min(1, p));
-          const scale = 0.6 + 0.4 * (1 - Math.abs(2 * p - 1));
-          inner.style.transform = `scale(${scale})`;
-          inner.style.transformOrigin = `50% ${p * 100}%`;
-        });
-      }
-
-      window.addEventListener('scroll', update, { passive: true, signal: ctl.signal });
-      window.addEventListener('resize', update, sig);
-      update();
-
-      return () => {
-        ctl.abort();
-        gallery.remove();
-        document.body.classList.remove('vgallery');
-        window.scrollTo(0, 0);
-      };
-    }
-
-    let galleryMode = null, teardownGallery = null;
-
-    function decideGallery() {
-      const w = window.innerWidth;
-      if (!w || !galleryItems.length) return; // viewport not laid out yet
-      const next = w <= 680 ? 'mobile' : 'desktop';
-      if (next === galleryMode) return;
-      if (teardownGallery) teardownGallery();
-      galleryMode = next;
-      teardownGallery = next === 'mobile' ? buildMobile() : buildDesktop();
-    }
-
-    window.addEventListener('resize', decideGallery);
-    decideGallery();
+    document.body.appendChild(index);
   }
 
   const editor = {

@@ -6,18 +6,12 @@
 
 body {
   color: #000;
-  cursor: url('images/horse_cursor.png?v=3') 4 1, auto;
-  background:
-    radial-gradient(ellipse 60% 20% at 20% 22%, rgba(255,255,255,0.85) 0%, transparent 100%),
-    radial-gradient(ellipse 35% 15% at 72% 14%, rgba(255,255,255,0.75) 0%, transparent 100%),
-    radial-gradient(ellipse 45% 18% at 50% 42%, rgba(255,255,255,0.55) 0%, transparent 100%),
-    radial-gradient(ellipse 55% 14% at 82% 38%, rgba(255,255,255,0.45) 0%, transparent 100%),
-    radial-gradient(ellipse 40% 16% at 28% 62%, rgba(255,255,255,0.40) 0%, transparent 100%),
-    linear-gradient(180deg, #a0cfe6 0%, #badfef 20%, #ceeaf5 40%, #dff2fa 65%, #eef8fd 85%, #f6fbff 100%);
-  background-attachment: fixed;
+  cursor: auto;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ── Header — floats transparently over the sky ── */
+/* ── Header ── */
 header {
   padding: 20px 32px;
   display: grid;
@@ -26,14 +20,14 @@ header {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 500;
-  background: transparent;
+  background: #fff;
 }
 
 .header-name {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  letter-spacing: 0;
   color: #000;
   justify-self: start;
 }
@@ -41,8 +35,8 @@ header {
 .header-ig {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  letter-spacing: 0;
   color: #000;
   text-decoration: none;
   justify-self: end;
@@ -65,9 +59,57 @@ header {
   grid-template-columns: 1fr 1fr;
 }
 
-/* Hidden when the scroll gallery takes over (all non-edit views) */
-body.vgallery .grid {
+body.index-mode .grid,
+body.detail-mode .grid,
+body.preview-mode .grid {
   display: none !important;
+}
+
+/* ── Project index ── */
+#project-index {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: clamp(18px, 3.2vw, 44px);
+  row-gap: 34px;
+  padding: 112px 32px 40px;
+}
+
+.project-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #000;
+  text-decoration: none;
+}
+
+.project-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.project-card:hover .project-title {
+  text-decoration: underline;
+}
+
+.project-meta {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding-top: 9px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.project-count {
+  color: #000;
+}
+
+.project-title {
+  color: #777;
 }
 
 /* ── Desktop vertical scroll gallery ── */
@@ -175,6 +217,11 @@ body.preview-mode .grid {
   top: 0; left: 0; right: 0; bottom: 0;
   overflow: hidden;
   z-index: 50;
+  background: #fff;
+}
+
+.detail-mode header {
+  display: none;
 }
 
 .slide {
@@ -184,7 +231,7 @@ body.preview-mode .grid {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 80px;
+  padding: 68px 24px 76px;
   opacity: 0;
   transition: opacity 0.12s ease;
   pointer-events: none;
@@ -200,10 +247,37 @@ body.preview-mode .grid {
 }
 
 .slide img {
-  max-width: 82vw;
-  max-height: 78vh;
+  max-width: 76vw;
+  max-height: 72vh;
   object-fit: contain;
   display: block;
+}
+
+#viewer-close,
+#viewer-count {
+  position: fixed;
+  z-index: 200;
+  color: #000;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+#viewer-close {
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-decoration: none;
+}
+
+#viewer-close:hover {
+  text-decoration: underline;
+}
+
+#viewer-count {
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .viewer-piece-row {
@@ -239,6 +313,7 @@ body.preview-mode .grid {
   flex-direction: column;
   gap: 8px;
   z-index: 200;
+  display: none;
 }
 
 .nav-dot {
@@ -279,6 +354,36 @@ body.preview-mode .grid {
 
   header {
     padding: 16px 20px;
+  }
+
+  #project-index {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 10px;
+    row-gap: 28px;
+    padding: 92px 16px 28px;
+  }
+
+  .project-meta {
+    gap: 5px;
+    padding-top: 7px;
+    font-size: 10px;
+  }
+
+  .slide {
+    padding: 72px 16px 86px;
+  }
+
+  .slide img {
+    max-width: 87vw;
+    max-height: 68vh;
+  }
+
+  #viewer-close {
+    top: 29px;
+  }
+
+  #viewer-count {
+    bottom: 68px;
   }
 
   #desk-gallery {
